@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { AiOutlineMenu } from 'react-icons/ai';
 import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -13,6 +13,7 @@ import MenuItem from './MenuItem';
 import useRegisterModal from '@/app/hooks/useRegisterModal';
 import useLoginModal from '@/app/hooks/useLoginModal';
 import useRentModal from '@/app/hooks/useRentModal';
+import useOutsideClick from '@/app/hooks/useOutsideClick';
 
 import { SafeUser } from '@/app/types';
 
@@ -27,10 +28,15 @@ const UserMenu: React.FC<IUserMenu> = ({ currentUser }) => {
   const rentModal = useRentModal();
 
   const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const toggleOpen = useCallback(() => {
     setIsOpen((value) => !value);
   }, []);
+
+  useOutsideClick<HTMLDivElement>(menuRef, () => {
+    if (isOpen) setIsOpen(false);
+  });
 
   const onRent = useCallback(() => {
     if (!currentUser) {
@@ -41,7 +47,7 @@ const UserMenu: React.FC<IUserMenu> = ({ currentUser }) => {
   }, [currentUser, loginModal, rentModal]);
 
   return (
-    <div className='relative'>
+    <div className='relative' ref={menuRef}>
       <div className='flex flex-row items-center gap-3'>
         <div
           onClick={onRent}
@@ -92,29 +98,59 @@ const UserMenu: React.FC<IUserMenu> = ({ currentUser }) => {
             {currentUser ? (
               <>
                 <MenuItem
-                  onClick={() => router.push('/trips')}
+                  onClick={() => {
+                    setIsOpen(false);
+                    router.push('/trips');
+                  }}
                   label='My trips'
                 />
                 <MenuItem
-                  onClick={() => router.push('/favorites')}
+                  onClick={() => {
+                    setIsOpen(false);
+                    router.push('/favorites');
+                  }}
                   label='My favorites'
                 />
                 <MenuItem
-                  onClick={() => router.push('/reservations')}
+                  onClick={() => {
+                    setIsOpen(false);
+                    router.push('/reservations');
+                  }}
                   label='My reservations'
                 />
                 <MenuItem
-                  onClick={() => router.push('/properties')}
+                  onClick={() => {
+                    setIsOpen(false);
+                    router.push('/properties');
+                  }}
                   label='My properties'
                 />
-                <MenuItem onClick={rentModal.onOpen} label='Airbnb my home' />
+                <MenuItem
+                  onClick={() => {
+                    setIsOpen(false);
+                    rentModal.onOpen();
+                  }}
+                  label='Airbnb my home'
+                />
                 <hr />
                 <MenuItem onClick={signOut} label='Logout' />
               </>
             ) : (
               <>
-                <MenuItem onClick={loginModal.onOpen} label='Login' />
-                <MenuItem onClick={registerModal.onOpen} label='Sign up' />
+                <MenuItem
+                  onClick={() => {
+                    setIsOpen(false);
+                    loginModal.onOpen();
+                  }}
+                  label='Login'
+                />
+                <MenuItem
+                  onClick={() => {
+                    setIsOpen(false);
+                    registerModal.onOpen();
+                  }}
+                  label='Sign up'
+                />
               </>
             )}
           </div>
